@@ -17,11 +17,11 @@ except:
 
 DISPLAY_WIDTH = 500.0
 DISPLAY_HEIGHT = 500.0
-X = 0
-Y = 0
-Z = 15
-LEFT = 0
-RIGHT = 0
+Xdisp = 0
+Ydisp = 0
+Zdisp = 0
+Rotate = 0
+PERSPECTIVE = 'p'
 
 
 def init(): 
@@ -80,11 +80,18 @@ def drawHouse ():
     glEnd()
 
 def start ():
+    global Xdisp
+    global Zdisp
+    global Ydisp
+    global Rotate
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
-    gluLookAt(0.0, 0.0, 15.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0)
-
+    Zdisp = 0
+    Xdisp = 0
+    Ydisp = 0
+    Rotate = 0
 def display():
+    global PERSPECTIVE
     glClear (GL_COLOR_BUFFER_BIT)
     glColor3f (1.0, 1.0, 1.0)
     # viewing transformation 
@@ -92,8 +99,11 @@ def display():
 
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5,30.0)
-    
+    if PERSPECTIVE == 'p':
+        gluPerspective(90, 1, 1, 50)
+    else:
+        glOrtho(-10, 10, -10, 10, 1, 100)
+
     glMatrixMode(GL_MODELVIEW)
     drawHouse()
 
@@ -102,42 +112,67 @@ def display():
     
 
 def keyboard(key, x, y):
-    
+    import math
+    global Xdisp
+    global Ydisp
+    global Zdisp
+    global Rotate
+    global PERSPECTIVE
     if key == chr(27):
         import sys
         sys.exit(0)
 
     if key == b'w':
-        print("W is pressed")
-        glTranslated(1, 1, 0)
+        print('W is pressed')
+        Xdisp += math.sin(math.radians(Rotate))
+        Zdisp += math.cos(math.radians(Rotate))
+        glTranslated(math.sin(math.radians(Rotate)), 0, math.cos(math.radians(Rotate)))
 
 
     if key == b'a':
-        print("A is pressed")
-        glTranslated(1,0,0)
+        print('A is pressed')
+        Xdisp += math.cos(math.radians(Rotate))
+        Zdisp -= math.sin(math.radians(Rotate))
+        glTranslated(math.cos(math.radians(Rotate)), 0, -math.sin(math.radians(Rotate)))
 
     if key == b'd':
-        print("D is pressed")
-        glTranslated(-1,0,0)
+        print('D is pressed')
+        Xdisp -= math.cos(math.radians(Rotate))
+        Zdisp += math.sin(math.radians(Rotate))
+        glTranslated(-math.cos(math.radians(Rotate)), 0, math.sin(math.radians(Rotate)))
 
     if key == b's':
-        print("S is pressed")
-        glTranslated(0,0,-1)
+        print('S is pressed')
+        Xdisp -= math.sin(math.radians(Rotate))
+        Zdisp -= math.cos(math.radians(Rotate))
+        glTranslated(-math.sin(math.radians(Rotate)),0,-math.cos(math.radians(Rotate)))
 
     if key == b'q':
-        print("Q is pressed")
-        glRotated(1, 0.0, 1.0, 0.0)
+        print('Q is pressed')
+        Rotate += 1
+        if Rotate > 360:
+            Rotate -= 360
+        glTranslated(-Xdisp, 0, -Zdisp)
+        glRotated(-1, 0, 1, 0)
+        glTranslated(Xdisp, 0, Zdisp)
+
 
     if key == b'e':
-        print("E is pressed")
-        glRotated(-1, 0.0, 1.0, 0.0)        
+        print('E is pressed')
+        Rotate -= 1
+        if Rotate < 0:
+            Rotate += 360
+
+        glTranslated(-Xdisp, 0, -Zdisp)
+        glRotated(1,0, 1, 0)
+        glTranslated(Xdisp, 0, Zdisp)
 
     if key == b'r':
-        print("R is pressed")
+        print('R is pressed')
         glTranslated(0,-1,0)
 
     if key == b'f':
-        print("F is pressed")
+        print('F is pressed')
         glTranslated(0,1,0)
 
     if key == b'h':
@@ -146,10 +181,11 @@ def keyboard(key, x, y):
 
     if key == b'o':
         print("O is pressed")
+        PERSPECTIVE = 'o'
 
     if key == b'p':
         print("P is pressed")    
-  
+        PERSPECTIVE = 'p'  
     #Your Code Here
   
     glutPostRedisplay()
