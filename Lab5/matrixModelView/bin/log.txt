@@ -1,0 +1,23 @@
+===== Log started at 2018-10-08, 23:56:08. =====
+
+23:56:08  Main window is created.
+23:56:08  Display Resolution: 1920x1080
+23:56:08  Creating a dummy window to use WGL_ARB_pixel_format extension.
+23:56:09  WGL_ARB_pixel_format and WGL_ARB_multisample are supported.
+23:56:09  Use wglChoosePixelFormatARB() to find a pixel format with MSAA.
+23:56:09  MSAA mode: 8x
+23:56:09  Pixel Format: 60
+23:56:09  A dummy window is destroyed.
+23:56:09  Created OpenGL rendering context.
+23:56:09  Created a rendering thread for OpenGL.
+23:56:09  Changed OpenGL rendering window size: 1920x1080.
+23:56:09  OpenGL child window is created.
+23:56:09  Initialized OpenGL states.
+23:56:09  GLSL shader objects are initialized.
+23:56:09  Initialized OpenGL window size.
+23:56:09  Entering OpenGL rendering thread...
+23:56:09  OpenGL form dialog is created.
+23:56:09  Form dialog dimension: 1076 x 268
+23:56:09  Changed OpenGL rendering window size: 1076x538.
+23:56:09  GL window dimension: 1076 x 538
+8:49:25  Changed OpenGL rendering window size: 0x0.
