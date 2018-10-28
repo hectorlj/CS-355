@@ -2,6 +2,11 @@
 import pygame
 from math import pi
 
+import numpy
+import math
+
+
+
 class Point:
 	def __init__(self,x,y):
 		self.x = x
@@ -210,6 +215,30 @@ while not done:
 
 	if pressed[pygame.K_a]:
 		print("a is pressed")
+
+	if pressed[pygame.K_w]:
+		print("w is pressed")
+
+	if pressed[pygame.K_d]:
+		print("d is pressed")
+
+	if pressed[pygame.K_s]:
+		print("s is pressed")
+
+	if pressed[pygame.K_e]:
+		print("e is pressed")
+
+	if pressed[pygame.K_q]:
+		print("q is pressed")
+
+	if pressed[pygame.K_r]:
+		print("r is pressed")
+
+	if pressed[pygame.K_f]:
+		print("f is pressed")
+
+	if pressed[pygame.K_h]:
+		print("h is pressed")
 
 	#Viewer Code#
 	#####################################################################
