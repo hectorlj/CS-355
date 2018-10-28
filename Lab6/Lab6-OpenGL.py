@@ -218,13 +218,14 @@ def display():
         gluPerspective(90, 1, 1, 250)
     else:
         glOrtho(-10, 10, -10, 10, 1, 100)
-
+    #first house
     glMatrixMode(GL_MODELVIEW)
     drawHouse()
-
+    # car
     glPushMatrix()
     glTranslatef(Ztire, 0, 15)
     drawCar()
+    # tires
     glTranslatef(-2, 0, -2)
     glRotatef(tireRotate, 0, 0, 1)
     drawTire()
@@ -244,6 +245,7 @@ def display():
     glRotatef(tireRotate, 0, 0, 1)
     drawTire()
 
+    # the rest of the houses on the street
     glPopMatrix()
     glPushMatrix()
     glTranslated(-20, 0, 0)
