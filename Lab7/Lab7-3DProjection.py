@@ -173,9 +173,9 @@ def homogenousLines(model):
 		linelist.append(Line3D([s.start.x, s.start.y, s.start.z, 1], [s.end.x, s.end.y, s.end.z, 1]))
 	return linelist
 
-def objectToWorld(model, places):
+def objectToWorld(model, position):
 	linelist = []
-	for i in places:
+	for i in position:
 		for s in model:
 			var = i.dot(s.start)
 			var2 = i.dot(s.end)
@@ -265,9 +265,15 @@ def drawCar(linelist, x, y, z, rotation):
 	for s in linelist7:
 		pygame.draw.line(screen, GREEN, (s.start[0], s.start[1]), (s.end[0], s.end[1]))
 
-def drawTires(linelist, x, y, z, rotation):
+	drawTires(tireLineList, x, y, z, rotation, linelist3)
+
+def drawTires(linelist, x, y, z, rotation, prevMatrix):
 	linelist2 = homogenousLines(linelist)
-	linelist3 = objectToWorld(linelist2, tires)
+	tirepositions = []
+	for s in tires:
+		tirepositions.append(s.dot(car))
+
+	linelist3 = objectToWorld(linelist2, tirepositions)
 	linelist4 = worldToCamera(linelist3, x, y, z, rotation)
 	linelist5 = clipView(linelist4)
 	linelist6 = cut(linelist5)
@@ -357,22 +363,22 @@ car = np.array([
 tires = np.array([
 				[[1,0,0,2],
 				 [0,1,0,0],
-				 [0,0,1,12],
+				 [0,0,1,-2],
 				 [0,0,0,1]],
 
 				[[1,0,0,-2],
 				 [0,1,0,0],
-				 [0,0,1,12],
+				 [0,0,1,2],
 				 [0,0,0,1]],
 
 				[[1,0,0,2],
 				 [0,1,0,0],
-				 [0,0,1,8],
+				 [0,0,1,2],
 				 [0,0,0,1]],
 
 				[[1,0,0,-2],
 				 [0,1,0,0],
-				 [0,0,1,8],
+				 [0,0,1,-2],
 				 [0,0,0,1]]
 				])
 
@@ -460,7 +466,6 @@ while not done:
 	#####################################################################
 	drawHouse(linelist, Xdisp, Ydisp, Zdisp, Rotate)
 	drawCar(carLineList, Xdisp, Ydisp, Zdisp, Rotate)
-	drawTires(tireLineList, Xdisp, Ydisp, Zdisp, Rotate)
 
 	# Go ahead and update the screen with what we've drawn.
 	# This MUST happen after all the other drawing commands.
