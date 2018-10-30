@@ -1,11 +1,8 @@
 # Import a library of functions called 'pygame'
 import pygame
 from math import pi
-
-import numpy
-import math
-
-
+import numpy as np
+import math as m
 
 class Point:
 	def __init__(self,x,y):
@@ -170,7 +167,114 @@ def loadTire():
     
     return tire
 
-	
+def homogenousLines(model):
+	linelist = []
+	for s in model:
+		linelist.append(Line3D([s.start.x, s.start.y, s.start.z, 1], [s.end.x, s.end.y, s.end.z, 1]))
+	return linelist
+
+def objectToWorld(model, places):
+	linelist = []
+	for i in places:
+		for s in model:
+			var = i.dot(s.start)
+			var2 = i.dot(s.end)
+			linelist.append(Line3D(var, var2))
+	return linelist
+
+def worldToCamera(modellist, x, y, z, rotation):
+	camera = np.array([
+						[[1,0,0,x],
+						 [0,1,0,y],
+						 [0,0,1,z],
+						 [0,0,0,1]],
+
+						[[m.cos(m.radians(rotation)),0,-m.sin(m.radians(rotation)),0],
+						 [0,1,0,0],
+						 [m.sin(m.radians(rotation)),0,m.cos(m.radians(rotation)),0],
+						 [0,0,0,1]]
+					])
+	linelist = []
+	for s in modellist:
+		var = camera[0].dot(s.start)
+		var = camera[1].dot(var)
+		var2 = camera[0].dot(s.end)
+		var2 = camera[1].dot(var2)
+		linelist.append(Line3D(var, var2))
+	return linelist
+
+def clipView(modellist):
+	linelist = []
+	for s in modellist:
+		var = clip.dot(s.start)
+		var2 = clip.dot(s.end)
+		w = var[3]
+		w2 = var2[3]
+
+		x = var[0]
+		y = var[1]
+		z = var[2]
+		x2 = var2[0]
+		y2 = var2[1]
+		z2 = var2[2]
+		if not ((x < -w and x2 < -w2) or (y < -w and y2 < -w2) or (z2 < -w2 or z < -w) or
+			(x > w and x2 > w2) or (y > w and y2 > w2) or (z2 > w2 and z > w)):
+			# print('x, y, z, w')
+			# print(var)
+			# print('2 x, y, z, w 2')
+			# print(var2)
+			# print(y>w)
+			# print(y2 >w2)
+		# if not (( x > w and x2 > w2) or (y2 > w2 and  y > w) and (z > w and z2 > w2)) 
+			linelist.append(Line3D(var, var2))
+	return linelist
+
+def cut(modellist):
+	linelist = []
+	for s in modellist:
+		var = s.start/s.start[3]
+		var2 = s.end/s.end[3]
+		linelist.append(Line3D([var[0], var[1], 1], [var2[0], var2[1], 1]))
+	return linelist
+
+def toView(modellist):
+	linelist = []
+	for s in modellist:
+		var = screenview.dot(s.start)
+		var2 = screenview.dot(s.end)
+		linelist.append(Line3D([var[0], var[1]], [var2[0], var2[1]]))
+	return linelist
+
+def drawHouse(linelist, x, y, z, rotation):
+	linelist2 = homogenousLines(linelist)
+	linelist3 = objectToWorld(linelist2, houses)
+	linelist4 = worldToCamera(linelist3, x, y, z, rotation)
+	linelist5 = clipView(linelist4)
+	linelist6 = cut(linelist5)
+	linelist7 = toView(linelist6)
+	for s in linelist7:
+		pygame.draw.line(screen, BLUE, (s.start[0], s.start[1]), (s.end[0], s.end[1]))
+
+def drawCar(linelist, x, y, z, rotation):
+	linelist2 = homogenousLines(linelist)
+	linelist3 = objectToWorld(linelist2, car)
+	linelist4 = worldToCamera(linelist3, x, y, z, rotation)
+	linelist5 = clipView(linelist4)
+	linelist6 = cut(linelist5)
+	linelist7 = toView(linelist6)
+	for s in linelist7:
+		pygame.draw.line(screen, GREEN, (s.start[0], s.start[1]), (s.end[0], s.end[1]))
+
+def drawTires(linelist, x, y, z, rotation):
+	linelist2 = homogenousLines(linelist)
+	linelist3 = objectToWorld(linelist2, tires)
+	linelist4 = worldToCamera(linelist3, x, y, z, rotation)
+	linelist5 = clipView(linelist4)
+	linelist6 = cut(linelist5)
+	linelist7 = toView(linelist6)
+	for s in linelist7:
+		pygame.draw.line(screen, RED, (s.start[0], s.start[1]), (s.end[0], s.end[1]))
+
 # Initialize the game engine
 pygame.init()
  
@@ -182,7 +286,7 @@ GREEN = (  0, 255,   0)
 RED =   (255,   0,   0)
 
 # Set the height and width of the screen
-size = [512, 512]
+size = [500, 500]
 screen = pygame.display.set_mode(size)
 
 pygame.display.set_caption("Shape Drawing")
@@ -192,7 +296,95 @@ done = False
 clock = pygame.time.Clock()
 start = Point(0.0,0.0)
 end = Point(0.0,0.0)
+near = .0001
+far = 1000
+f = 90
 linelist = loadHouse()
+carLineList = loadCar()
+tireLineList = loadTire()
+Xdisp = 0
+Zdisp = 0
+Ydisp = -5
+Rotate = 0
+den = far-near
+clip1 = (far+near)/den
+clip2 = (-2*far*near)/den
+zoom = 1/m.tan(m.radians(f/2))
+houses = np.array([
+						[[m.cos(pi),0,-m.sin(pi),0],
+						 [0,1,0,0],
+						 [m.sin(pi),0,m.cos(pi),20],
+						 [0,0,0,1]],
+
+						[[m.cos(pi),0,-m.sin(pi),15],
+						 [0,1,0,0],
+						 [m.sin(pi),0,m.cos(pi),20],
+						 [0,0,0,1]],
+
+						[[m.cos(pi),0,-m.sin(pi),-15],
+						 [0,1,0,0],
+						 [m.sin(pi),0,m.cos(pi),20],
+						 [0,0,0,1]],
+
+						[[1,0,0,0],
+						 [0,1,0,0],
+						 [0,0,1,-20],
+						 [0,0,0,1]],
+
+						[[1,0,0,15],
+						 [0,1,0,0],
+						 [0,0,1,-20],
+						 [0,0,0,1]],
+
+						[[1,0,0,-15],
+						 [0,1,0,0],
+						 [0,0,1,-20],
+						 [0,0,0,1]],
+
+						[[m.cos(3*pi/2),0,-m.sin(3*pi/2),-25],
+						 [0,1,0,0],
+						 [m.sin(3*pi/2),0,m.cos(3*pi/2), 0],
+						 [0,0,0,1]]
+					])
+
+car = np.array([
+				[[1,0,0,0],
+				 [0,1,0,0],
+				 [0,0,1,10],
+				 [0,0,0,1]]
+				])
+
+tires = np.array([
+				[[1,0,0,2],
+				 [0,1,0,0],
+				 [0,0,1,12],
+				 [0,0,0,1]],
+
+				[[1,0,0,-2],
+				 [0,1,0,0],
+				 [0,0,1,12],
+				 [0,0,0,1]],
+
+				[[1,0,0,2],
+				 [0,1,0,0],
+				 [0,0,1,8],
+				 [0,0,0,1]],
+
+				[[1,0,0,-2],
+				 [0,1,0,0],
+				 [0,0,1,8],
+				 [0,0,0,1]]
+				])
+
+
+clip = np.array([[1.73, 0, 0, 0],
+					[0, 1.73, 0, 0],
+					[0, 0, clip1, clip2],
+					[0, 0, 1, 0]])
+
+screenview = np.array([[512/2, 0, 512/2],
+						[0, -512/2, 512/2],
+						[0,0,1]])
 
 #Loop until the user clicks the close button.
 while not done:
@@ -213,39 +405,62 @@ while not done:
 			
 	pressed = pygame.key.get_pressed()
 
+
 	if pressed[pygame.K_a]:
-		print("a is pressed")
+		# c("a is pressed")
+		Xdisp += m.cos(m.radians(Rotate))
+		Zdisp -= m.sin(m.radians(Rotate))
 
 	if pressed[pygame.K_w]:
-		print("w is pressed")
+		# c("w is pressed")
+		Xdisp -= m.sin(m.radians(Rotate))
+		Zdisp -= m.cos(m.radians(Rotate))
 
 	if pressed[pygame.K_d]:
-		print("d is pressed")
+		# c("d is pressed")
+		Xdisp -= m.cos(m.radians(Rotate))
+		Zdisp += m.sin(m.radians(Rotate))
 
 	if pressed[pygame.K_s]:
-		print("s is pressed")
-
-	if pressed[pygame.K_e]:
-		print("e is pressed")
+		# c("s is pressed")
+		Xdisp += m.sin(m.radians(Rotate))
+		Zdisp += m.cos(m.radians(Rotate))
 
 	if pressed[pygame.K_q]:
-		print("q is pressed")
+		# c("q is pressed")
+		Rotate -= 1
+		if Rotate < 0:
+			Rotate += 360
+
+	if pressed[pygame.K_e]:
+		# c("e is pressed")
+		Rotate += 1
+		if Rotate > 360:
+			Rotate -= 360
 
 	if pressed[pygame.K_r]:
-		print("r is pressed")
+		# c("r is pressed")
+		Ydisp -= 1
 
 	if pressed[pygame.K_f]:
-		print("f is pressed")
+		# c("f is pressed")
+		Ydisp += 1
 
 	if pressed[pygame.K_h]:
-		print("h is pressed")
+		# c("h is pressed")
+		linelist = loadHouse()
+		carLineList = loadCar()
+		tireLineList = loadTire()
+		Xdisp = 0
+		Zdisp = 0
+		Ydisp = -5
+		Rotate = 0
 
 	#Viewer Code#
 	#####################################################################
-
-	for s in linelist:
-		#BOGUS DRAWING PARAMETERS SO YOU CAN SEE THE HOUSE WHEN YOU START UP
-		pygame.draw.line(screen, BLUE, (20*s.start.x+200, -20*s.start.y+200), (20*s.end.x+200, -20*s.end.y+200))
+	drawHouse(linelist, Xdisp, Ydisp, Zdisp, Rotate)
+	drawCar(carLineList, Xdisp, Ydisp, Zdisp, Rotate)
+	drawTires(tireLineList, Xdisp, Ydisp, Zdisp, Rotate)
 
 	# Go ahead and update the screen with what we've drawn.
 	# This MUST happen after all the other drawing commands.
