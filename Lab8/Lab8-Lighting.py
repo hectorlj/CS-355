@@ -100,18 +100,12 @@ class WireframeViewer(wf.WireframeGroup):
 
                             specular = np.clip(specular,0.0,1.0) * colour
                             diffuse = np.clip(diffuse,0.0,1.0) * colour
-                            m_ambient = 0.20
-                            
-                            ambient = np.clip((self.light_color * m_ambient),0.0,1.0) * colour
-                            light_total = np.add(ambient, diffuse)
-                            light_total = np.add(light_total, specular)
-                            light_total = np.clip(light_total, 0.0, 255.0)
-                        else:
-                            m_ambient = 0.20
-                            
-                            ambient = np.clip((self.light_color * m_ambient),0.0,1.0) * colour
-                            light_total = ambient
-
+                        m_ambient = 0.20
+                        
+                        ambient = np.clip((self.light_color * m_ambient),0.0,1.0) * colour
+                        light_total = np.add(ambient, diffuse)
+                        light_total = np.add(light_total, specular)
+                        light_total = np.clip(light_total, 0.0, 255.0)
                         pygame.draw.polygon(self.screen, light_total, [(nodes[node][0], nodes[node][1]) for node in face], 0)
 
                 if self.displayEdges:
