@@ -9,17 +9,12 @@ import basicShapes as shape
 
 
 Xdisp = 0
-Ydisp = 0
-Zdisp = -1
-Rotate = 0
+
 class WireframeViewer(wf.WireframeGroup):
     """ A group of wireframes which can be displayed on a Pygame screen """
     
     def __init__(self, width, height, name="Wireframe Viewer"):
         global Xdisp
-        global Ydisp
-        global Zdisp
-        global Rotate
         self.width = width
         self.height = height
         
@@ -62,9 +57,7 @@ class WireframeViewer(wf.WireframeGroup):
     
     def display(self):
         global Xdisp
-        global Ydisp
-        global Zdisp
-        global Rotate
+        
         self.screen.fill(self.background)
 
         for name, wireframe in self.wireframes.items():
@@ -80,32 +73,28 @@ class WireframeViewer(wf.WireframeGroup):
                     towards_us = np.dot(normal, self.view_vector)
 
                     # Only draw faces that face us
-                    if towards_us > 0:
+                    if towards_us > 0.1:
                         specular = [0.0,0.0,0.0]
                         diffuse = [0.0,0.0,0.0]
                         
                         if np.dot(normal, self.light_vector) > 0:
-                            m_gls = 1
-                            m_diffuse = 0.25
-                            m_specular = 0.55
-                            reflection_vector = self.light_vector.dot(normal)
-                            reflection_vector = 2 * reflection_vector
-                            reflection_vector = reflection_vector * normal
-                            reflection_vector -= self.light_vector
+                            m_gls = 21
+
+                            m_diffuse =.65
+                            m_specular = .25
+                            reflection_vector = 2*(self.light_vector.dot(normal))*normal - self.light_vector
                             
-                            vdotl = (np.dot(self.view_vector, reflection_vector))**m_gls
-
-                            diffuse =  self.light_color * m_diffuse * np.dot(normal, self.light_vector)
-                            specular = self.light_color * m_specular * vdotl
-
-                            specular = np.clip(specular,0.0,1.0) * colour
-                            diffuse = np.clip(diffuse,0.0,1.0) * colour
-                        m_ambient = 0.20
+                            # print(self.light_vector)
+                            diffuse =  self.light_color * (m_diffuse * colour) * normal.dot(self.light_vector)
+                            specular = self.light_color * (m_specular * colour) * self.view_vector.dot(reflection_vector)**m_gls
+                            
+                        m_ambient = 0.1
                         
-                        ambient = np.clip((self.light_color * m_ambient),0.0,1.0) * colour
+                        ambient = self.light_color * (m_ambient * colour)
                         light_total = np.add(ambient, diffuse)
                         light_total = np.add(light_total, specular)
-                        light_total = np.clip(light_total, 0.0, 255.0)
+                        light_total = np.clip(light_total, 0, 255)
+                                                
                         pygame.draw.polygon(self.screen, light_total, [(nodes[node][0], nodes[node][1]) for node in face], 0)
 
                 if self.displayEdges:
@@ -132,9 +121,6 @@ class WireframeViewer(wf.WireframeGroup):
 
     def keyEvent(self, key):
         global Xdisp
-        global Ydisp
-        global Zdisp
-        global Rotate
         #Your code here
         if key == pygame.K_w:
             temp = self.light_vector
@@ -160,14 +146,16 @@ class WireframeViewer(wf.WireframeGroup):
             temp = self.light_vector
             temp = np.insert(temp, 3, 1)
             self.light_vector = np.dot(temp, wf.rotateZMatrix(-math.pi/16))[:-1]
-
-
-
-
-
-
-
-
+        if key == pygame.K_p:
+            Xdisp += .01
+            print(Xdisp)
+            if Xdisp > .7:
+                Xdisp -= 1
+        if key == pygame.K_l:
+            Xdisp -= .01
+            print(Xdisp)
+            if Xdisp < 0:
+                Xdisp += 1
 
         return
 
